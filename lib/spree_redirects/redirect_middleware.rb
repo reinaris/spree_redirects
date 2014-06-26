@@ -1,10 +1,10 @@
 module SpreeRedirects
   class RedirectMiddleware
-    
+
     def initialize(app)
       @app = app
     end
-   
+
     def call(env)
       # when consider_all_requests_local is false, an exception is raised for 404
       # consider_all_requests_local should be false in a production environment
@@ -15,7 +15,7 @@ module SpreeRedirects
         routing_error = e
       end
 
-      if routing_error.present? or status == 404
+      if (routing_error.present? or status == 404) and Rails.env.production?
         path = [ env["PATH_INFO"], env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
 
         if url = find_redirect(path)
@@ -28,11 +28,11 @@ module SpreeRedirects
 
       [ status, headers, body ]
     end
-    
+
     def find_redirect(url)
       redirect = Spree::Redirect.find_by_old_url(url)
       redirect.new_url unless redirect.nil?
     end
-    
+
   end
-end 
+end
